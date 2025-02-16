@@ -93,7 +93,7 @@ impl Debug for PrefixExpression {
         let mut body = format!("{}\nExpression: {:?}", operator.literal, expression);
         body = format_tabbed(&body);
 
-        write!(f, "Prefix Expression\n{}", body)
+        writeln!(f, "Prefix Expression\n{}", body)
     }
 }
 
@@ -122,13 +122,13 @@ impl Debug for InfixExpression {
             left_expression,
         } = self;
 
-        let mut body = format!(
-            "{}\nLHS: {:?}\nRHS: {:?}",
-            operator.literal, left_expression, right_expression
-        );
+        let lhs = format_tabbed(&format!("{:?}", left_expression));
+        let rhs = format_tabbed(&format!("{:?}", right_expression));
+
+        let mut body = format!("{}\nLHS:\n{}\nRHS:\n{}", operator.literal, lhs, rhs);
         body = format_tabbed(&body);
 
-        write!(f, "Infix Expression\n{}", body)
+        writeln!(f, "Infix Expression\n{}", body)
     }
 }
 
@@ -144,7 +144,7 @@ pub enum Expression {
 fn format_tabbed(str: &str) -> String {
     let mut tabbed = String::new();
     for line in str.lines() {
-        tabbed.push_str(&format!("\t{}\n", line));
+        tabbed.push_str(&format!("  {}\n", line));
     }
 
     tabbed.pop(); // Remove last new line
@@ -238,7 +238,9 @@ impl IfStatement {
 impl Debug for IfStatement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let IfStatement(_, cond, block) = self;
-        write!(f, "if ({:?}) {:?}", cond, block)
+        let cond_str = format_tabbed(&format!("{:?}", cond));
+        let block_str = format_tabbed(&format!("{:?}", block));
+        write!(f, "if\ncond:\n{}\nblock:\n{}", cond_str, block_str)
     }
 }
 
