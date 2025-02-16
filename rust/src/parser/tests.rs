@@ -416,4 +416,17 @@ mod tests {
             };"
         );
     }
+
+    #[test]
+    fn test_assign_function_literal() {
+        let input = "let cube = fn (x) { return x * x * x; };";
+        let mut parser = Parser::new(Tokenizer::new(input));
+        let program = parser.parse_program();
+        assert_eq!(
+            format!("{}", program),
+            "let cube = fn (x) {\n\
+            \treturn ((x * x) * x);\n\
+            };"
+        );
+    }
 }

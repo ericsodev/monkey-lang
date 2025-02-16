@@ -162,6 +162,7 @@ impl Parser {
         // Parse if body
         self.match_token_err(TokenType::LBrace)?;
         let body = self.parse_block_statements()?;
+        self.advance_token();
 
         Ok(IfStatement::new(if_token, cond, body))
     }
@@ -175,7 +176,7 @@ impl Parser {
                 None => break,
             }
         }
-        self.consume_token_err(TokenType::RBrace)?;
+        self.match_token_err(TokenType::RBrace)?;
 
         Ok(BlockStatement::new(brace_token, statements))
     }
