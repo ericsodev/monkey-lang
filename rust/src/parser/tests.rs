@@ -248,6 +248,14 @@ mod tests {
     }
 
     #[test]
+    fn test_grouped_expression() {
+        let input = "(3 + 4) * 5 * (2 - 1);";
+        let mut parser = Parser::new(Tokenizer::new(input));
+        let program = parser.parse_program();
+        assert_eq!(format!("{}", program), "(((3 + 4) * 5) * (2 - 1));");
+    }
+
+    #[test]
     fn test_if_statement() {
         let input1 = "if (false) { let x = 3 + 4; }";
         let mut parser = Parser::new(Tokenizer::new(input1));
