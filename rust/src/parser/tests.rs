@@ -377,4 +377,43 @@ mod tests {
             }"
         );
     }
+
+    #[test]
+    fn test_function_literal_no_params() {
+        let input = "fn () { return 4; }";
+        let mut parser = Parser::new(Tokenizer::new(input));
+        let program = parser.parse_program();
+        assert_eq!(
+            format!("{}", program),
+            "fn () {\n\
+            \t return 4;\n\
+            }"
+        );
+    }
+
+    #[test]
+    fn test_function_literal_single_param() {
+        let input = "fn (x) { return x * x; }";
+        let mut parser = Parser::new(Tokenizer::new(input));
+        let program = parser.parse_program();
+        assert_eq!(
+            format!("{}", program),
+            "fn (x) {\n\
+            \t return (x * x);\n\
+            }"
+        );
+    }
+
+    #[test]
+    fn test_function_literal_multiple_param() {
+        let input = "fn (x, y, z) { return x * y * z; }";
+        let mut parser = Parser::new(Tokenizer::new(input));
+        let program = parser.parse_program();
+        assert_eq!(
+            format!("{}", program),
+            "fn (x) {\n\
+            \t return ((x * y) * z);\n\
+            }"
+        );
+    }
 }

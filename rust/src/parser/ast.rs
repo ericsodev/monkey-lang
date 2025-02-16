@@ -1,4 +1,7 @@
-use std::fmt::{Debug, Display};
+use std::{
+    fmt::{Debug, Display},
+    iter,
+};
 
 use crate::lexer::tokenizer::{Token, TokenType};
 
@@ -133,18 +136,71 @@ impl Debug for InfixExpression {
 }
 
 #[derive(Clone, PartialEq)]
+pub struct Function {
+    params: Vec<Ident>,
+    body: BlockStatement,
+}
+
+impl Function {
+    pub fn new(params: Vec<Ident>, body: BlockStatement) -> Function {
+        Function { params, body }
+    }
+}
+
+impl Debug for Function {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let params: &str = &self
+            .params
+            .iter()
+            .map(|v| -> &str { &v.1 })
+            .collect::<Vec<&str>>()
+            .join(", ");
+
+        let body: String = format!("{:?}", self.body);
+        let details = format!("params: {}\nbody:{}", format_tabbed(params), format_tabbed(&body));
+        write!(f, "Function\n{}", format_tabbed(&details))
+    }
+}
+
+impl Display for Function {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let params: &str = &self
+            .params
+            .iter()
+            .map(|v| -> &str { &v.1 })
+            .collect::<Vec<&str>>()
+            .join(", ");
+
+        let body: String = format!("{}", self.body);
+        write!(f, "fn ({}) {{\n{}\n}}", params, format_tabbed(&body))
+    }
+}
+
+#[derive(Clone, PartialEq)]
 pub enum Expression {
     Integer(Integer),
     Identifier(Ident),
     Boolean(Boolean),
     PrefixExpression(Box<PrefixExpression>),
     InfixExpression(Box<InfixExpression>),
+    Function(Function),
 }
 
 fn format_tabbed(str: &str) -> String {
     let mut tabbed = String::new();
     for line in str.lines() {
         tabbed.push_str(&format!("  {}\n", line));
+    }
+
+    tabbed.pop(); // Remove last new line
+    tabbed
+}
+
+fn format_tabbed_n(str: &str, n: usize) -> String {
+    let mut tabbed = String::new();
+    let prefix: String = iter::repeat(" ").take(n).collect();
+    for line in str.lines() {
+        tabbed.push_str(&format!("{}{}\n", prefix, line));
     }
 
     tabbed.pop(); // Remove last new line
@@ -159,6 +215,7 @@ impl Debug for Expression {
             Expression::Boolean(val) => format!("Boolean: {:?}", val),
             Expression::PrefixExpression(expr) => return expr.fmt(f),
             Expression::InfixExpression(expr) => return expr.fmt(f),
+            Expression::Function(func) => return Debug::fmt(&func, f),
         };
         write!(f, "{}", &str)
     }
@@ -179,6 +236,7 @@ impl Display for Expression {
                     expr.left_expression, expr.operator.literal, expr.right_expression
                 )
             }
+            Expression::Function(func) => format!("{}", func),
         };
         write!(f, "{}", str)
     }
