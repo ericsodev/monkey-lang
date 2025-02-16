@@ -1,7 +1,4 @@
-use std::{
-    fmt::{Debug, Display},
-    iter,
-};
+use std::fmt::{Debug, Display};
 
 use crate::lexer::tokenizer::{Token, TokenType};
 
@@ -178,6 +175,58 @@ impl Display for Function {
 }
 
 #[derive(Clone, PartialEq)]
+pub struct FunctionCall {
+    token: Token,
+    function: Box<Expression>,
+    arguments: Vec<Expression>,
+}
+
+impl FunctionCall {
+    pub fn new(token: Token, function: Expression, arguments: Vec<Expression>) -> Self {
+        Self {
+            token,
+            function: Box::new(function),
+            arguments,
+        }
+    }
+}
+
+impl Debug for FunctionCall {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let function = format!("{}", self.function);
+        let args: String = self
+            .arguments
+            .iter()
+            .enumerate()
+            .map(|(i, arg)| -> String {
+                return format!("Argument {}\n{}", i + 1, format_tabbed(&format!("{:?}", arg)));
+            })
+            .collect::<Vec<String>>()
+            .join("\n");
+
+        let details = format_tabbed(&format!(
+            "Function\n{}\nArguments\n{}",
+            format_tabbed(&function),
+            format_tabbed(&args)
+        ));
+
+        write!(f, "Function Call\n{}", details)
+    }
+}
+
+impl Display for FunctionCall {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let arguments: String = self
+            .arguments
+            .iter()
+            .map(|v| -> String { format!("{}", v) })
+            .collect::<Vec<String>>()
+            .join(", ");
+        write!(f, "{}({})", self.function, arguments)
+    }
+}
+
+#[derive(Clone, PartialEq)]
 pub enum Expression {
     Integer(Integer),
     Identifier(Ident),
@@ -185,6 +234,7 @@ pub enum Expression {
     PrefixExpression(Box<PrefixExpression>),
     InfixExpression(Box<InfixExpression>),
     Function(Function),
+    FunctionCall(FunctionCall),
 }
 
 fn format_tabbed(str: &str) -> String {
@@ -206,6 +256,7 @@ impl Debug for Expression {
             Expression::PrefixExpression(expr) => return expr.fmt(f),
             Expression::InfixExpression(expr) => return expr.fmt(f),
             Expression::Function(func) => return Debug::fmt(&func, f),
+            Expression::FunctionCall(func) => return Debug::fmt(&func, f),
         };
         write!(f, "{}", &str)
     }
@@ -227,6 +278,7 @@ impl Display for Expression {
                 )
             }
             Expression::Function(func) => format!("{}", func),
+            Expression::FunctionCall(func) => format!("{}", func),
         };
         write!(f, "{}", str)
     }

@@ -429,4 +429,41 @@ mod tests {
             };"
         );
     }
+
+    #[test]
+    fn test_call_function_with_name() {
+        let input = "add();";
+        let mut parser = Parser::new(Tokenizer::new(input));
+        let program = parser.parse_program();
+        assert_eq!(format!("{}", program), "add();");
+    }
+
+    #[test]
+    fn test_call_function_with_one_arg() {
+        let input = "add(2, 3);";
+        let mut parser = Parser::new(Tokenizer::new(input));
+        let program = parser.parse_program();
+        assert_eq!(format!("{}", program), "add(2, 3);");
+    }
+
+    #[test]
+    fn test_call_function_with_multiple_args() {
+        let input = "add(2, 3);";
+        let mut parser = Parser::new(Tokenizer::new(input));
+        let program = parser.parse_program();
+        assert_eq!(format!("{}", program), "add(2, 3);");
+    }
+
+    #[test]
+    fn test_call_function_literal_with_args() {
+        let input = "fn (x, y) { return x + y } (2, 3);";
+        let mut parser = Parser::new(Tokenizer::new(input));
+        let program = parser.parse_program();
+        assert_eq!(
+            format!("{}", program),
+            "fn (x, y) {\n\
+            return (x + y)\n\
+            }();"
+        );
+    }
 }

@@ -347,6 +347,8 @@ impl Parser {
 
 #[cfg(test)]
 mod private_test {
+    use crate::parser::ast::FunctionCall;
+
     use super::*;
 
     fn test_statements(input: &str, expected_ast: Vec<Statement>) -> () {
@@ -576,6 +578,28 @@ mod private_test {
                 right_expression: Expression::Integer(Integer::mock(3)),
             }))),
         ];
+
+        test_statements(input, expected);
+    }
+
+    #[test]
+    fn test_function_call_ast() {
+        let input = "add_numbers(1 + 2, foo);";
+
+        let expected: Vec<Statement> = vec![Statement::ExpresssionStatement(Expression::FunctionCall(
+            FunctionCall::new(
+                Token::mock_ident("add_numbers"),
+                Expression::Identifier(Ident::mock("add_numbers")),
+                vec![
+                    Expression::InfixExpression(Box::new(InfixExpression {
+                        operator: Token::new(TokenType::Plus, "+", 0, 0),
+                        left_expression: Expression::Integer(Integer::mock(5)),
+                        right_expression: Expression::Integer(Integer::mock(3)),
+                    })),
+                    Expression::Identifier(Ident::mock("foo")),
+                ],
+            ),
+        ))];
 
         test_statements(input, expected);
     }
