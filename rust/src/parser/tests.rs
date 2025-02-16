@@ -84,7 +84,7 @@ impl Ident {
         Ident(Token::mock_ident(value), value.to_string())
     }
 }
-
+#[cfg(test)]
 mod tests {
 
     use crate::{
@@ -299,6 +299,82 @@ mod tests {
                     )],
                 ),
             ))],
+        );
+    }
+
+    #[test]
+    fn test_multistatement_body_if_statement() {
+        let input1 = "if (x < 10) { let y = x + 4; return y + 3;}";
+        let mut parser = Parser::new(Tokenizer::new(input1));
+        let program = parser.parse_program();
+        assert_eq!(
+            format!("{}", program),
+            "if ((x < 10)) {\n\
+            \tlet y = (x + 4);\n\
+            \treturn (y + 3);\n\
+            }"
+        );
+
+        let input2 = "let foo = bar + 2;\n\
+                      if (x < 10) { let y = x + 4; return y + 3;}\n\
+                      let foo = foo + 5;";
+        let mut parser = Parser::new(Tokenizer::new(input2));
+        let program = parser.parse_program();
+        assert_eq!(
+            format!("{}", program),
+            "let foo = (bar + 2);\n\
+            if ((x < 10)) {\n\
+            \tlet y = (x + 4);\n\
+            \treturn (y + 3);\n\
+            }\n\
+            let foo = (foo + 5);"
+        );
+    }
+
+    #[test]
+    fn test_if_condition_expressions() {
+        // Just a boolean
+        let input1 = "if (true) { let y = x + 4;}";
+        let mut parser = Parser::new(Tokenizer::new(input1));
+        let program = parser.parse_program();
+        assert_eq!(
+            format!("{}", program),
+            "if (true) {\n\
+            \tlet y = (x + 4);\n\
+            }"
+        );
+
+        // Eq
+        let input2 = "if (x == 2) { let y = x + 4;}";
+        let mut parser = Parser::new(Tokenizer::new(input2));
+        let program = parser.parse_program();
+        assert_eq!(
+            format!("{}", program),
+            "if ((x == 2)) {\n\
+            \tlet y = (x + 4);\n\
+            }"
+        );
+
+        // Gt
+        let input2 = "if (x > 3) { let y = x + 4;}";
+        let mut parser = Parser::new(Tokenizer::new(input2));
+        let program = parser.parse_program();
+        assert_eq!(
+            format!("{}", program),
+            "if ((x > 3)) {\n\
+            \tlet y = (x + 4);\n\
+            }"
+        );
+
+        // Lt
+        let input2 = "if (x < 3) { let y = x + 4;}";
+        let mut parser = Parser::new(Tokenizer::new(input2));
+        let program = parser.parse_program();
+        assert_eq!(
+            format!("{}", program),
+            "if ((x < 3)) {\n\
+            \tlet y = (x + 4);\n\
+            }"
         );
     }
 }
