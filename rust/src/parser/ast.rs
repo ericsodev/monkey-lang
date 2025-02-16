@@ -137,13 +137,14 @@ impl Debug for InfixExpression {
 
 #[derive(Clone, PartialEq)]
 pub struct Function {
+    token: Token,
     params: Vec<Ident>,
     body: BlockStatement,
 }
 
 impl Function {
-    pub fn new(params: Vec<Ident>, body: BlockStatement) -> Function {
-        Function { params, body }
+    pub fn new(token: Token, params: Vec<Ident>, body: BlockStatement) -> Function {
+        Function { token, params, body }
     }
 }
 
@@ -172,7 +173,7 @@ impl Display for Function {
             .join(", ");
 
         let body: String = format!("{}", self.body);
-        write!(f, "fn ({}) {{\n{}\n}}", params, format_tabbed(&body))
+        write!(f, "fn ({}) {}", params, &body)
     }
 }
 
@@ -189,18 +190,7 @@ pub enum Expression {
 fn format_tabbed(str: &str) -> String {
     let mut tabbed = String::new();
     for line in str.lines() {
-        tabbed.push_str(&format!("  {}\n", line));
-    }
-
-    tabbed.pop(); // Remove last new line
-    tabbed
-}
-
-fn format_tabbed_n(str: &str, n: usize) -> String {
-    let mut tabbed = String::new();
-    let prefix: String = iter::repeat(" ").take(n).collect();
-    for line in str.lines() {
-        tabbed.push_str(&format!("{}{}\n", prefix, line));
+        tabbed.push_str(&format!("\t{}\n", line));
     }
 
     tabbed.pop(); // Remove last new line

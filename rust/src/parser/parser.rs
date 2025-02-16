@@ -3,7 +3,7 @@ use core::panic;
 use crate::lexer::tokenizer::{Token, TokenType, Tokenizer};
 
 use super::ast::{
-    BlockStatement, Boolean, Expression, Ident, IfStatement, InfixExpression, Integer, OperatorPrecendence,
+    BlockStatement, Boolean, Expression, Function, Ident, IfStatement, InfixExpression, Integer, OperatorPrecendence,
     PrecedenceMap, PrefixExpression, Program, Statement,
 };
 
@@ -211,6 +211,7 @@ impl Parser {
             TokenType::True | TokenType::False => Expression::Boolean(self.parse_boolean()?),
             TokenType::Bang | TokenType::Minus => Expression::PrefixExpression(Box::new(self.parse_unary_operator()?)),
             TokenType::LParen => self.parse_grouped_expression()?,
+            TokenType::Fn => Expression::Function(self.parse_function_literal()?),
             _ => {
                 return Err(ParserError {
                     reason: String::from("Unexpected token in prefix position"),
@@ -220,6 +221,41 @@ impl Parser {
         };
 
         Ok(result)
+    }
+
+    fn parse_function_literal(&mut self) -> Result<Function, ParserError> {
+        let fn_token = self.consume_token_err(TokenType::Fn)?;
+        self.consume_token_err(TokenType::LParen)?;
+        let params = self.parse_function_parameters()?;
+        self.advance_token();
+        let body = self.parse_block_statements()?;
+
+        Ok(Function::new(fn_token, params, body))
+    }
+
+    fn parse_function_parameters(&mut self) -> Result<Vec<Ident>, ParserError> {
+        let mut parameters: Vec<Ident> = vec![];
+
+        // Empty parameters case
+        if let Some(_) = self.match_token(TokenType::RParen) {
+            return Ok(parameters);
+        }
+
+        parameters.push(self.parse_ident()?);
+        self.advance_token();
+
+        loop {
+            if let Some(_) = self.match_token(TokenType::RParen) {
+                break;
+            }
+
+            self.consume_token_err(TokenType::Comma)?;
+            parameters.push(self.parse_ident()?);
+            self.advance_token();
+        }
+
+        self.match_token_err(TokenType::RParen)?;
+        Ok(parameters)
     }
 
     fn parse_infix_position(&mut self, left_expression: Expression) -> Result<Expression, ParserError> {

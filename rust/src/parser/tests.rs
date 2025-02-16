@@ -386,8 +386,8 @@ mod tests {
         assert_eq!(
             format!("{}", program),
             "fn () {\n\
-            \t return 4;\n\
-            }"
+            \treturn 4;\n\
+            };"
         );
     }
 
@@ -399,8 +399,8 @@ mod tests {
         assert_eq!(
             format!("{}", program),
             "fn (x) {\n\
-            \t return (x * x);\n\
-            }"
+            \treturn (x * x);\n\
+            };"
         );
     }
 
@@ -411,9 +411,9 @@ mod tests {
         let program = parser.parse_program();
         assert_eq!(
             format!("{}", program),
-            "fn (x) {\n\
-            \t return ((x * y) * z);\n\
-            }"
+            "fn (x, y, z) {\n\
+            \treturn ((x * y) * z);\n\
+            };"
         );
     }
 }
