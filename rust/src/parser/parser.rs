@@ -3,8 +3,8 @@ use core::panic;
 use crate::lexer::tokenizer::{Token, TokenType, Tokenizer};
 
 use super::ast::{
-    BlockStatement, Boolean, Expression, Function, Ident, IfStatement, InfixExpression, Integer, OperatorPrecendence,
-    PrecedenceMap, PrefixExpression, Program, Statement,
+    BlockStatement, Boolean, Expression, Function, FunctionCall, Ident, IfStatement, InfixExpression, Integer,
+    OperatorPrecendence, PrecedenceMap, PrefixExpression, Program, Statement,
 };
 
 #[derive(Debug)]
@@ -198,7 +198,10 @@ impl Parser {
 
         while self.next_token.token_type != TokenType::Semicolon && precedence < self.peek_precedence() {
             self.advance_token();
-            left_expr = self.parse_infix_position(left_expr)?;
+            left_expr = match self.current_token.token_type {
+                TokenType::LParen => Expression::FunctionCall(self.parse_call_function(left_expr)?),
+                _ => self.parse_infix_position(left_expr)?,
+            }
         }
 
         Ok(left_expr)
@@ -222,6 +225,43 @@ impl Parser {
         };
 
         Ok(result)
+    }
+
+    fn parse_call_function(&mut self, fn_expression: Expression) -> Result<FunctionCall, ParserError> {
+        let paren_token = self.consume_token_err(TokenType::LParen)?;
+        let arguments = self.parse_call_function_arguments()?;
+
+        Ok(FunctionCall::new(paren_token, fn_expression, arguments))
+    }
+
+    fn parse_call_function_arguments(&mut self) -> Result<Vec<Expression>, ParserError> {
+        let mut arguments: Vec<Expression> = vec![];
+
+        if let Some(_) = self.match_token(TokenType::RParen) {
+            return Ok(arguments);
+        }
+
+        arguments.push(self.parse_expression(OperatorPrecendence::Lowest)?);
+
+        loop {
+            self.advance_token();
+            match self.current_token.token_type {
+                TokenType::RParen => break,
+                TokenType::Comma => {
+                    self.advance_token();
+                    arguments.push(self.parse_expression(OperatorPrecendence::Lowest)?);
+                }
+                _ => {
+                    return Err(ParserError {
+                        token: self.current_token(),
+                        reason: String::from("Unexpected token in function call arguments"),
+                    })
+                }
+            };
+        }
+
+        self.match_token_err(TokenType::RParen)?;
+        Ok(arguments)
     }
 
     fn parse_function_literal(&mut self) -> Result<Function, ParserError> {
@@ -588,13 +628,13 @@ mod private_test {
 
         let expected: Vec<Statement> = vec![Statement::ExpresssionStatement(Expression::FunctionCall(
             FunctionCall::new(
-                Token::mock_ident("add_numbers"),
+                Token::mock_left_paren(),
                 Expression::Identifier(Ident::mock("add_numbers")),
                 vec![
                     Expression::InfixExpression(Box::new(InfixExpression {
                         operator: Token::new(TokenType::Plus, "+", 0, 0),
-                        left_expression: Expression::Integer(Integer::mock(5)),
-                        right_expression: Expression::Integer(Integer::mock(3)),
+                        left_expression: Expression::Integer(Integer::mock(1)),
+                        right_expression: Expression::Integer(Integer::mock(2)),
                     })),
                     Expression::Identifier(Ident::mock("foo")),
                 ],
@@ -602,5 +642,34 @@ mod private_test {
         ))];
 
         test_statements(input, expected);
+    }
+
+    #[test]
+    fn test_function_call_in_infix_expression() {
+        let input = "4 + add_numbers(1, 2) * 3;";
+
+        let expected: Vec<Statement> = vec![Statement::ExpresssionStatement(Expression::InfixExpression(Box::new(
+            InfixExpression::new(
+                Token::mock_plus(),
+                Expression::Integer(Integer::mock(4)),
+                Expression::InfixExpression(Box::new(InfixExpression::new(
+                    Token::mock_asterisk(),
+                    Expression::FunctionCall(FunctionCall::new(
+                        Token::mock_left_paren(),
+                        Expression::Identifier(Ident::mock("add_numbers")),
+                        vec![
+                            Expression::Integer(Integer::mock(1)),
+                            Expression::Integer(Integer::mock(2)),
+                        ],
+                    )),
+                    Expression::Integer(Integer::mock(3)),
+                ))),
+            ),
+        )))];
+
+        let mut parser = Parser::new(Tokenizer::new(input));
+        let Program { statements: actual } = parser.parse_program();
+
+        assert_eq!(actual[0], expected[0]);
     }
 }

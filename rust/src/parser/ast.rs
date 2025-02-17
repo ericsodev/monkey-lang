@@ -24,6 +24,7 @@ impl PrecedenceMap for TokenType {
             TokenType::Lt | TokenType::Gt => OperatorPrecendence::LesserGreater,
             TokenType::Plus | TokenType::Minus => OperatorPrecendence::Sum,
             TokenType::Asterisk | TokenType::Slash => OperatorPrecendence::Product,
+            TokenType::LParen => OperatorPrecendence::Call,
             _ => OperatorPrecendence::Lowest,
         }
     }
@@ -31,13 +32,7 @@ impl PrecedenceMap for TokenType {
 
 impl PrecedenceMap for Token {
     fn token_precedence_map(&self) -> OperatorPrecendence {
-        match self.token_type {
-            TokenType::Eq | TokenType::Neq => OperatorPrecendence::Equals,
-            TokenType::Lt | TokenType::Gt => OperatorPrecendence::LesserGreater,
-            TokenType::Plus | TokenType::Minus => OperatorPrecendence::Sum,
-            TokenType::Asterisk | TokenType::Slash => OperatorPrecendence::Product,
-            _ => OperatorPrecendence::Lowest,
-        }
+        self.token_type.token_precedence_map()
     }
 }
 
@@ -235,6 +230,20 @@ pub enum Expression {
     InfixExpression(Box<InfixExpression>),
     Function(Function),
     FunctionCall(FunctionCall),
+}
+
+impl Expression {
+    pub fn get_token(&mut self) -> Token {
+        match self {
+            Expression::Integer(v) => v.0.clone(),
+            Expression::Identifier(v) => v.0.clone(),
+            Expression::Boolean(v) => v.0.clone(),
+            Expression::Function(Function { token, .. }) => token.clone(),
+            Expression::FunctionCall(FunctionCall { token, .. }) => token.clone(),
+            Expression::InfixExpression(expr) => expr.operator.clone(),
+            Expression::PrefixExpression(expr) => expr.operator.clone(),
+        }
+    }
 }
 
 fn format_tabbed(str: &str) -> String {

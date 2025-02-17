@@ -12,6 +12,15 @@ impl Token {
         }
     }
 
+    pub fn mock_left_paren() -> Token {
+        Token {
+            token_type: TokenType::LParen,
+            literal: String::from("("),
+            line_num: 0,
+            column_num: 0,
+        }
+    }
+
     pub fn mock_int(num: usize) -> Token {
         Token {
             token_type: TokenType::Int,
@@ -470,8 +479,16 @@ mod tests {
         assert_eq!(
             format!("{}", program),
             "fn (x, y) {\n\
-            return (x + y)\n\
-            }();"
+            \treturn (x + y);\n\
+            }(2, 3);"
         );
+    }
+
+    #[test]
+    fn test_call_function_in_mixed_expression() {
+        let input = "3 + cube(8 + 2) * 4;";
+        let mut parser = Parser::new(Tokenizer::new(input));
+        let program = parser.parse_program();
+        assert_eq!(format!("{}", program), "(3 + (cube((8 + 2)) * 4));");
     }
 }
