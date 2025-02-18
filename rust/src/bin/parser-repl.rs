@@ -5,8 +5,8 @@ use monkey_lang::{lexer::tokenizer, parser::parser};
 
 pub fn main() {
     println!("Welcome to Monkey Lang Parser Repl");
-    let mut input = String::new();
     loop {
+        let mut input = String::new();
         print!("\n>> ");
         if let Err(_) = stdout().flush() {
             break;
@@ -22,5 +22,6 @@ pub fn main() {
         let mut parser = parser::Parser::new(tokenizer);
 
         println!("{:?}", parser.parse_program());
+        parser.print_errors();
     }
 }

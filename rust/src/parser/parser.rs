@@ -1,4 +1,4 @@
-use core::panic;
+use std::fmt::Display;
 
 use crate::lexer::tokenizer::{Token, TokenType, Tokenizer};
 
@@ -8,9 +8,22 @@ use super::ast::{
 };
 
 #[derive(Debug)]
-struct ParserError {
+pub struct ParserError {
     reason: String,
     token: Token,
+}
+
+impl Display for ParserError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "At line {} column {} \'{}\': {}",
+            self.token.line_num + 1,
+            self.token.column_num + 1,
+            self.token.literal,
+            self.reason
+        )
+    }
 }
 
 pub struct Parser {
@@ -18,6 +31,7 @@ pub struct Parser {
     statements: Vec<Statement>,
     current_token: Token,
     next_token: Token,
+    errors: Vec<ParserError>,
 }
 
 impl Parser {
@@ -30,6 +44,17 @@ impl Parser {
             statements: vec![],
             current_token,
             next_token,
+            errors: vec![],
+        }
+    }
+
+    pub fn get_errors(&self) -> &Vec<ParserError> {
+        &self.errors
+    }
+
+    pub fn print_errors(&self) -> () {
+        for error in &self.errors {
+            println!("{}", error)
         }
     }
 
@@ -59,24 +84,10 @@ impl Parser {
         self.current_token.clone()
     }
 
-    fn peek_token(&self) -> Token {
-        self.next_token.clone()
-    }
-
     fn match_token(&mut self, expected_type: TokenType) -> Option<Token> {
         match self.current_token() {
             token if token.token_type == expected_type => Some(token),
             _ => None,
-        }
-    }
-
-    fn match_next_token_err(&mut self, expected_type: TokenType) -> Result<Token, ParserError> {
-        match self.peek_token() {
-            token if token.token_type == expected_type => Ok(token),
-            token => Err(ParserError {
-                reason: format!("Expected {:?}", expected_type),
-                token,
-            }),
         }
     }
 
@@ -143,8 +154,9 @@ impl Parser {
         };
 
         match statement {
-            Err(ParserError { reason, token }) => {
-                panic!("Parser error: {} at {:?}", reason, token);
+            Err(err) => {
+                self.errors.push(err);
+                None
             }
             Ok(statement) => Some(statement),
         }
