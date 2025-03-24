@@ -46,7 +46,7 @@ impl Debug for Ident {
 }
 
 #[derive(Clone, PartialEq)]
-pub struct Integer(pub Token, pub usize);
+pub struct Integer(pub Token, pub isize);
 
 impl Debug for Integer {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

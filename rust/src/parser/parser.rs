@@ -342,7 +342,7 @@ impl Parser {
 
     fn parse_integer(&mut self) -> Result<Integer, ParserError> {
         let token = self.match_token_err(TokenType::Int)?;
-        let num = match token.literal.parse::<usize>() {
+        let num = match token.literal.parse::<isize>() {
             Ok(num) => Integer(token, num),
             Err(e) => {
                 return Err(ParserError {
