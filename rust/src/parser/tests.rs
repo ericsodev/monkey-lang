@@ -21,7 +21,7 @@ impl Token {
         }
     }
 
-    pub fn mock_int(num: usize) -> Token {
+    pub fn mock_int(num: isize) -> Token {
         Token {
             token_type: TokenType::Int,
             literal: num.to_string(),
@@ -77,7 +77,7 @@ impl Token {
 }
 
 impl Integer {
-    pub fn mock(num: usize) -> Integer {
+    pub fn mock(num: isize) -> Integer {
         Integer(Token::mock_int(num), num)
     }
 }
