@@ -28,7 +28,12 @@ mod tests {
         assert_eq!(eval_input("3 + 1"), Object::Integer(4));
         assert_eq!(eval_input("4 * 8"), Object::Integer(32));
         assert_eq!(eval_input("4 * 8 + 10"), Object::Integer(42));
-        assert_eq!(eval_input("4 * (8 - 10) - 2"), Object::Integer(-42));
+        assert_eq!(eval_input("(8 - 10)"), Object::Integer(-2));
+        assert_eq!(eval_input("4 * (3 + 2)"), Object::Integer(20));
+        assert_eq!(eval_input("4 * (3 - 2)"), Object::Integer(4));
+        assert_eq!(eval_input("4 * (2 - 3)"), Object::Integer(-4));
+        assert_eq!(eval_input("4 * (8 - 10)"), Object::Integer(-8));
+        assert_eq!(eval_input("4 * (8 - 10) - 2"), Object::Integer(-10));
     }
 
     #[test]
