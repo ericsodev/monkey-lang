@@ -40,5 +40,14 @@ mod tests {
     fn test_prefix_expression() {
         assert_eq!(eval_input("-3"), Object::Integer(-3));
         assert_eq!(eval_input("-0"), Object::Integer(0));
+        assert_eq!(eval_input("-20"), Object::Integer(-20));
+    }
+
+    #[test]
+    fn test_infix_and_prefix_expression() {
+        assert_eq!(eval_input("-(2 * 3)"), Object::Integer(-5));
+        assert_eq!(eval_input("-2 * 5"), Object::Integer(-10));
+        assert_eq!(eval_input("-20 + 5 * -3"), Object::Integer(-35));
+        assert_eq!(eval_input("3 * (-2 * 3 + 5)"), Object::Integer(3));
     }
 }
